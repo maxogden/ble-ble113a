@@ -107,9 +107,7 @@ BluetoothController.prototype.onDiscover = function(peripheralData) {
       // If we are not filtering UUIDs or we are and this is a match
       if (!this.filteredUUIDs.length || this.matchAdvDataUUID(peripheralData.data)) {
         // Emit the event
-        setImmediate(function() {
-          this.emit('discover', peripheral);
-        }.bind(this));
+        this.emit('discover', peripheral);
       }
     }
   }.bind(this));
@@ -148,9 +146,7 @@ BluetoothController.prototype.onConnectionStatus = function(status) {
   // If we're advertising in slave mode
   if (this.advertising) {
     // Emit that we connected with the connection number
-    setImmediate(function() {
-      this.emit('connect', status.connection);
-    }.bind(this));
+    this.emit('connect', status.connection);
   } else {
     // If we're in master mode
     // Grab the peripheral
@@ -169,9 +165,7 @@ BluetoothController.prototype.onConnectionStatus = function(status) {
         // Let any listeners know
         if (peripheral.flags & (1 << 2)) {
           peripheral.connected = true;
-          setImmediate(function() {
-            this.emit('connect', peripheral);
-          }.bind(this));
+          this.emit('connect', peripheral);
         }
       }
     }.bind(this));
@@ -191,15 +185,11 @@ BluetoothController.prototype.onDisconnect = function(response) {
     peripheral.connected = false;
 
     // Emit the event
-    setImmediate(function() {
-      this.emit('disconnect', peripheral, response.reason);
-    }.bind(this));
+    this.emit('disconnect', peripheral, response.reason);
   } else {
     // If we're acting as slave
     // Emit event with connection param
-    setImmediate(function() {
-      this.emit('disconnect', response.connection, response.reason);
-    }.bind(this));
+    this.emit('disconnect', response.connection, response.reason);
   }
 };
 
@@ -279,9 +269,7 @@ BluetoothController.prototype.onRemoteWrite = function(value) {
   }
   var index = this._localHandles.indexOf(value.handle);
   if (index != -1) {
-    setImmediate(function() {
-      this.emit('remoteWrite', value.connection, index, value.value);
-    }.bind(this));
+    this.emit('remoteWrite', value.connection, index, value.value);
   }
 };
 
@@ -298,9 +286,7 @@ BluetoothController.prototype.onRemoteStatus = function(status) {
       action = "remoteIndication";
     }
 
-    setImmediate(function() {
-      this.emit(action, status.connection, index);
-    }.bind(this));
+    this.emit(action, status.connection, index);
   }
 };
 
@@ -313,10 +299,8 @@ BluetoothController.prototype.onPortStatus = function(portStatus) {
       // Set the correct type of interrupt
       var type = (portStatus.state & (1 << gpio._pin)) ? "rise" : "fall";
       // Emit that type as well as the change type
-      setImmediate(function() {
-        gpio.emit("change", null, portStatus.timestamp, type);
-        gpio.emit(type, null, portStatus.timestamp, type);
-      });
+      gpio.emit("change", null, portStatus.timestamp, type);
+      gpio.emit(type, null, portStatus.timestamp, type);
     }
   }
 };
@@ -367,13 +351,9 @@ BluetoothController.prototype.manageRequestResult = function(event, callback, er
   // If there wasn't an error
   if (!err) {
     // Emit the event
-    setImmediate(function() {
-      this.emit(event);
-    }.bind(this));
+    this.emit(event);
   } else {
-    setImmediate(function() {
-      this.emit('error', err);
-    }.bind(this));
+    this.emit('error', err);
   }
 
   // Call the callback
@@ -422,11 +402,9 @@ BluetoothController.prototype.connect = function(peripheral, callback) {
         if (callback) {
           callback();
         }
-        setImmediate(function() {
-          // Let any listeners know
-          self.emit('connect', peripheral);
-          peripheral.emit('connect');
-        });
+        // Let any listeners know
+        self.emit('connect', peripheral);
+        peripheral.emit('connect');
       }
     }
     // If there was an error
@@ -465,11 +443,8 @@ BluetoothController.prototype.disconnect = function(peripheral, callback) {
           if (callback) {
             callback(reason);
           }
-
-          setImmediate(function() {
-            // Let any listeners know
-            peripheral.emit('disconnect', reason);
-          }.bind(this));
+          // Let any listeners know
+          peripheral.emit('disconnect', reason);
         }
       }.bind(this));
     }
@@ -531,10 +506,8 @@ BluetoothController.prototype.discoverServices = function(peripheral, filter, ca
 
         if (!err && services.length) {
           // Set the events to be emitted.
-          setImmediate(function() {
-            this.emit('servicesDiscover', services);
-            peripheral.emit('servicesDiscover', services);
-          }.bind(this));
+          this.emit('servicesDiscover', services);
+          peripheral.emit('servicesDiscover', services);
         }
       }.bind(this));
     }
@@ -611,9 +584,7 @@ BluetoothController.prototype.attributeDiscoveryHandler = function(err, filter, 
       callback(err);
     }
 
-    setImmediate(function() {
-      this.emit('error', err);
-    }.bind(this));
+    this.emit('error', err);
 
     return;
   } else {
@@ -700,10 +671,8 @@ BluetoothController.prototype.discoverAllCharacteristics = function(peripheral, 
               callback(null, characteristics);
             }
 
-            setImmediate(function() {
-              self.emit('characteristicsDiscover', characteristics);
-              peripheral.emit('characteristicsDiscover', characteristics);
-            });
+            self.emit('characteristicsDiscover', characteristics);
+            peripheral.emit('characteristicsDiscover', characteristics);
           }
         }
       });
@@ -743,10 +712,8 @@ BluetoothController.prototype.discoverCharacteristics = function(peripheral, uui
     }
 
     if (!err && ret.length) {
-      setImmediate(function() {
-        this.emit('characteristicsDiscover', ret);
-        peripheral.emit('characteristicsDiscover', ret);
-      }.bind(this));
+      this.emit('characteristicsDiscover', ret);
+      peripheral.emit('characteristicsDiscover', ret);
     }
 
   }.bind(this));
@@ -950,11 +917,9 @@ BluetoothController.prototype.discoverCharacteristicsOfService = function(servic
       // If we have characteristics to report
       if (characteristics.length) {
         // Also emit it from appropriate sources
-        setImmediate(function() {
-          this.emit('characteristicsDiscover', characteristics);
-          service._peripheral.emit('characteristicsDiscover', characteristics);
-          service.emit('characteristicsDiscover', characteristics);
-        }.bind(this));
+        this.emit('characteristicsDiscover', characteristics);
+        service._peripheral.emit('characteristicsDiscover', characteristics);
+        service.emit('characteristicsDiscover', characteristics);
       }
     }.bind(this));
   }.bind(this));
@@ -1094,11 +1059,9 @@ BluetoothController.prototype.write = function(characteristic, value, callback) 
     }
 
     if (!err) {
-      setImmediate(function() {
-        this.emit('characteristicWrite', characteristic, written);
-        characteristic._peripheral.emit('characteristicWrite', characteristic, written);
-        characteristic.emit('write', written);
-      }.bind(this));
+      this.emit('characteristicWrite', characteristic, written);
+      characteristic._peripheral.emit('characteristicWrite', characteristic, written);
+      characteristic.emit('write', written);
     }
   }.bind(this));
 };
@@ -1360,9 +1323,7 @@ BluetoothController.prototype.discoverDescriptorsOfCharacteristic = function(cha
             callback(procedure.result, null);
           }
           // Emit the event
-          setImmediate(function() {
-            self.emit('error', procedure.result);
-          });
+          self.emit('error', procedure.result);
           return;
         } else {
           done = true;
@@ -1380,10 +1341,8 @@ BluetoothController.prototype.discoverDescriptorsOfCharacteristic = function(cha
         }
 
         // Emit events
-        setImmediate(function() {
-          self.emit('descriptorsDiscover', descriptors);
-          characteristic._peripheral.emit('descriptorsDiscover', descriptors);
-        });
+        self.emit('descriptorsDiscover', descriptors);
+        characteristic._peripheral.emit('descriptorsDiscover', descriptors);
       } else {
         // If we have not finished finding descriptors
 
@@ -1395,14 +1354,12 @@ BluetoothController.prototype.discoverDescriptorsOfCharacteristic = function(cha
           // If there was a problem with the request
           if (err) {
 
-          // Call callback immediately
-          if (callback) {
-            callback(err);
-          }
+            // Call callback immediately
+            if (callback) {
+              callback(err);
+            }
 
-           setImmediate(function() {
-             self.emit('error', err);
-           });
+            self.emit('error', err);
           }
         });
       }
@@ -1423,9 +1380,7 @@ BluetoothController.prototype.discoverDescriptorsOfCharacteristic = function(cha
       }
 
       // Emit the error
-      setImmediate(function() {
-        this.emit('error', err);
-      }.bind(this));
+      this.emit('error', err);
     }
   }.bind(this));
 };
@@ -1439,11 +1394,9 @@ BluetoothController.prototype.readDescriptor = function(descriptor, callback) {
     }
 
     if (value) {
-      setImmediate(function() {
-        this.emit('descriptorRead', descriptor, value);
-        descriptor._peripheral.emit('descriptorRead', descriptor, value);
-        descriptor.emit('descriptorRead', value);
-      }.bind(this));
+      this.emit('descriptorRead', descriptor, value);
+      descriptor._peripheral.emit('descriptorRead', descriptor, value);
+      descriptor.emit('descriptorRead', value);
     }
   }.bind(this));
 };
@@ -1456,11 +1409,9 @@ BluetoothController.prototype.writeDescriptor = function(descriptor, value, call
     }
 
     if (!err) {
-      setImmediate(function() {
-        this.emit('descriptorWrite', descriptor, written);
-        descriptor._peripheral.emit('descriptorWrite', descriptor, written);
-        descriptor.emit('descriptorWrite', written);
-      }.bind(this));
+      this.emit('descriptorWrite', descriptor, written);
+      descriptor._peripheral.emit('descriptorWrite', descriptor, written);
+      descriptor.emit('descriptorWrite', written);
     }
   }.bind(this));
 };
@@ -1571,9 +1522,7 @@ BluetoothController.prototype.confirmIndication = function(characteristic, callb
       }
 
       // Emit the error
-      setImmediate(function() {
-        this.emit('error', err);
-      }.bind(this));
+      this.emit('error', err);
     }
   }.bind(this));
 };
@@ -1584,10 +1533,8 @@ BluetoothController.prototype.updateRssi = function(peripheral, callback) {
       callback(err, response.rssi);
     }
     if (!err) {
-      setImmediate(function() {
-        this.emit('rssiUpdate', response.rssi);
-        peripheral.emit('rssiUpdate', response.rssi);
-      }.bind(this));
+      this.emit('rssiUpdate', response.rssi);
+      peripheral.emit('rssiUpdate', response.rssi);
     }
   }.bind(this));
 };
@@ -1618,15 +1565,11 @@ BluetoothController.prototype.startAdvertising = function(callback) {
     if (!err) {
       this.advertising = true;
       // Emit the error
-      setImmediate(function() {
-        this.emit('startAdvertising');
-      }.bind(this));
+      this.emit('startAdvertising');
     } else {
       this.advertising = false;
       // Emit the error
-      setImmediate(function() {
-        this.emit('error', err);
-      }.bind(this));
+      this.emit('error', err);
     }
 
     // Call callback immediately
@@ -1641,15 +1584,11 @@ BluetoothController.prototype.stopAdvertising = function(callback) {
     if (!err) {
       this.advertising = false;
       // Emit the error
-      setImmediate(function() {
-        this.emit('stopAdvertising');
-      }.bind(this));
+      this.emit('stopAdvertising');
     } else {
       this.advertising = true;
       // Emit the error
-      setImmediate(function() {
-        this.emit('error', err);
-      }.bind(this));
+      this.emit('error', err);
     }
 
     // Call callback immediately
@@ -1674,9 +1613,7 @@ BluetoothController.prototype.advDataHelper = function(data, advParam, callback)
     }
 
     if (err) {
-      setImmediate(function() {
-        this.emit('error');
-      }.bind(this));
+      this.emit('error');
       this._userAdvData = false;
     } else {
       this._userAdvData = true;
@@ -1999,9 +1936,7 @@ BluetoothController.prototype.readADC = function(callback) {
       }
 
       // Emit the error
-      setImmediate(function() {
-        this.emit('error', err);
-      }.bind(this));
+      this.emit('error', err);
     }
   }.bind(this));
 };
