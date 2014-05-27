@@ -107,7 +107,9 @@ BluetoothController.prototype.onDiscover = function(peripheralData) {
       // If we are not filtering UUIDs or we are and this is a match
       if (!this.filteredUUIDs.length || this.matchAdvDataUUID(peripheralData.data)) {
         // Emit the event
+        console.log('emitting...');
         this.emit('discover', peripheral);
+        // console.log('emitted...')
       }
     }
   }.bind(this));
